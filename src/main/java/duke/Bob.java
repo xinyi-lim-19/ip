@@ -3,6 +3,7 @@ package duke;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class Bob {
     private static final String LINE = "____________________________________________________________";
@@ -43,38 +44,45 @@ public class Bob {
         printLogo();
         greet();
 
-        Task[] tasks = new Task[100];
-        int size = 0;
+        // A-Collections: dynamic task list
+        ArrayList<Task> tasks = new ArrayList<>(100);
 
         while (true) {
             String input = br.readLine();
             if (input == null) { exit(); break; }
             String cmd = input.trim();
-            if (cmd.isEmpty()) { error("Please enter a command (try: todo, deadline, event, list, mark, unmark, bye)."); continue; }
+            if (cmd.isEmpty()) { error("Please enter a command (try: todo, deadline, event, list, mark, unmark, delete, bye)."); continue; }
 
             try {
                 if (cmd.equals("bye")) {
                     exit(); break;
 
                 } else if (cmd.equals("list")) {
-                    printList(tasks, size);
+                    printList(tasks);
 
                 } else if (cmd.startsWith("mark")) {
                     int idx = requireIndex(cmd, "mark");
-                    requireInRange(idx, size, "mark");
-                    tasks[idx - 1].mark();
-                    block(" Nice! I've marked this task as done:\n   " + tasks[idx - 1]);
+                    requireInRange(idx, tasks.size(), "mark");
+                    tasks.get(idx - 1).mark();
+                    block(" Nice! I've marked this task as done:\n   " + tasks.get(idx - 1));
 
                 } else if (cmd.startsWith("unmark")) {
                     int idx = requireIndex(cmd, "unmark");
-                    requireInRange(idx, size, "unmark");
-                    tasks[idx - 1].unmark();
-                    block(" OK, I've marked this task as not done yet:\n   " + tasks[idx - 1]);
+                    requireInRange(idx, tasks.size(), "unmark");
+                    tasks.get(idx - 1).unmark();
+                    block(" OK, I've marked this task as not done yet:\n   " + tasks.get(idx - 1));
+
+                } else if (cmd.startsWith("delete")) {
+                    int idx = requireIndex(cmd, "delete");
+                    requireInRange(idx, tasks.size(), "delete");
+                    Task removed = tasks.remove(idx - 1);
+                    block(" Noted. I've removed this task:\n   " + removed
+                          + "\n Now you have " + tasks.size() + " tasks in the list.");
 
                 } else if (cmd.startsWith("todo")) {
                     String desc = afterKeyword(cmd, "todo");
                     if (desc.isEmpty()) throw new DukeException("A todo needs a description. Example: todo borrow book");
-                    size = addTask(tasks, size, new Todo(desc));
+                    addTask(tasks, new Todo(desc));
 
                 } else if (cmd.startsWith("deadline")) {
                     String rest = afterKeyword(cmd, "deadline");
@@ -83,7 +91,7 @@ public class Bob {
                     String by   = p[1].trim();
                     if (desc.isEmpty()) throw new DukeException("Deadline needs a description. Example: deadline return book /by Sunday");
                     if (by.isEmpty())   throw new DukeException("Deadline needs a /by <when>. Example: deadline return book /by Sunday");
-                    size = addTask(tasks, size, new Deadline(desc, by));
+                    addTask(tasks, new Deadline(desc, by));
 
                 } else if (cmd.startsWith("event")) {
                     String rest = afterKeyword(cmd, "event");
@@ -95,11 +103,10 @@ public class Bob {
                     if (desc.isEmpty()) throw new DukeException("Event needs a description. Example: event project meeting /from Mon 2pm /to 4pm");
                     if (from.isEmpty()) throw new DukeException("Event needs a /from <start>. Example: event ... /from Mon 2pm /to 4pm");
                     if (to.isEmpty())   throw new DukeException("Event needs a /to <end>. Example: event ... /from Mon 2pm /to 4pm");
-                    size = addTask(tasks, size, new Event(desc, from, to));
+                    addTask(tasks, new Event(desc, from, to));
 
                 } else {
-                    // Level-5: unknown commands are errors (no fallback to Todo)
-                    throw new DukeException("I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, bye.");
+                    throw new DukeException("I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, delete, bye.");
                 }
             } catch (DukeException ex) {
                 error(ex.getMessage());
@@ -125,20 +132,19 @@ public class Bob {
     }
     private static void error(String msg) { block(" " + msg); }
 
-    private static void printList(Task[] tasks, int size) {
+    private static void printList(ArrayList<Task> tasks) {
         StringBuilder sb = new StringBuilder();
         sb.append(" Here are the tasks in your list:\n");
-        for (int i = 0; i < size; i++) sb.append(" ").append(i + 1).append(".").append(tasks[i]).append("\n");
+        for (int i = 0; i < tasks.size(); i++) sb.append(" ").append(i + 1).append(".").append(tasks.get(i)).append("\n");
         String body = sb.toString().endsWith("\n") ? sb.substring(0, sb.length() - 1) : sb.toString();
         block(body);
     }
 
     // ===== logic helpers =====
-    private static int addTask(Task[] tasks, int size, Task t) throws DukeException {
-        if (size >= tasks.length) throw new DukeException("Sorry, I can only store up to " + tasks.length + " items.");
-        tasks[size++] = t;
-        block(" Got it. I've added this task:\n   " + t + "\n Now you have " + size + " tasks in the list.");
-        return size;
+    private static void addTask(ArrayList<Task> tasks, Task t) throws DukeException {
+        if (tasks.size() >= 100) throw new DukeException("Sorry, I can only store up to 100 items.");
+        tasks.add(t);
+        block(" Got it. I've added this task:\n   " + t + "\n Now you have " + tasks.size() + " tasks in the list.");
     }
     private static int parseIndex(String s) {
         try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return -1; }
