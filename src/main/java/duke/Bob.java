@@ -7,21 +7,20 @@ import java.io.InputStreamReader;
 public class Bob {
     private static final String LINE = "____________________________________________________________";
 
+    // ===== Exceptions =====
+    private static class DukeException extends Exception {
+        DukeException(String message) { super(message); }
+    }
+
     // ===== Model =====
     private static class Task {
         protected final String description;
         protected boolean isDone;
-
-        Task(String description) {
-            this.description = description;
-            this.isDone = false;
-        }
+        Task(String description) { this.description = description; this.isDone = false; }
         void mark()   { this.isDone = true; }
         void unmark() { this.isDone = false; }
         String statusIcon() { return isDone ? "X" : " "; }
-
-        @Override
-        public String toString() { return "[" + statusIcon() + "] " + description; }
+        @Override public String toString() { return "[" + statusIcon() + "] " + description; }
     }
     private static class Todo extends Task {
         Todo(String description) { super(description); }
@@ -51,62 +50,59 @@ public class Bob {
             String input = br.readLine();
             if (input == null) { exit(); break; }
             String cmd = input.trim();
+            if (cmd.isEmpty()) { error("Please enter a command (try: todo, deadline, event, list, mark, unmark, bye)."); continue; }
 
-            if (cmd.equals("bye")) {
-                exit(); break;
+            try {
+                if (cmd.equals("bye")) {
+                    exit(); break;
 
-            } else if (cmd.equals("list")) {
-                System.out.println(LINE);
-                System.out.println(" Here are the tasks in your list:");
-                for (int i = 0; i < size; i++) {
-                    System.out.println(" " + (i + 1) + "." + tasks[i]);
-                }
-                System.out.println(LINE);
+                } else if (cmd.equals("list")) {
+                    printList(tasks, size);
 
-            } else if (cmd.startsWith("mark ")) {
-                int idx = parseIndex(cmd.substring(5));
-                if (idx >= 1 && idx <= size) {
+                } else if (cmd.startsWith("mark")) {
+                    int idx = requireIndex(cmd, "mark");
+                    requireInRange(idx, size, "mark");
                     tasks[idx - 1].mark();
-                    System.out.println(LINE);
-                    System.out.println(" Nice! I've marked this task as done:");
-                    System.out.println("   " + tasks[idx - 1]);
-                    System.out.println(LINE);
-                } else { errorOutOfRange(size); }
+                    block(" Nice! I've marked this task as done:\n   " + tasks[idx - 1]);
 
-            } else if (cmd.startsWith("unmark ")) {
-                int idx = parseIndex(cmd.substring(7));
-                if (idx >= 1 && idx <= size) {
+                } else if (cmd.startsWith("unmark")) {
+                    int idx = requireIndex(cmd, "unmark");
+                    requireInRange(idx, size, "unmark");
                     tasks[idx - 1].unmark();
-                    System.out.println(LINE);
-                    System.out.println(" OK, I've marked this task as not done yet:");
-                    System.out.println("   " + tasks[idx - 1]);
-                    System.out.println(LINE);
-                } else { errorOutOfRange(size); }
+                    block(" OK, I've marked this task as not done yet:\n   " + tasks[idx - 1]);
 
-            } else if (cmd.startsWith("todo ")) {
-                String desc = cmd.substring(5).trim();
-                size = addTask(tasks, size, new Todo(desc));
+                } else if (cmd.startsWith("todo")) {
+                    String desc = afterKeyword(cmd, "todo");
+                    if (desc.isEmpty()) throw new DukeException("A todo needs a description. Example: todo borrow book");
+                    size = addTask(tasks, size, new Todo(desc));
 
-            } else if (cmd.startsWith("deadline ")) {
-                String rest = cmd.substring(9).trim();
-                String[] parts = splitOnce(rest, "/by");
-                String desc = parts[0].trim();
-                String by   = parts.length > 1 ? parts[1].trim() : "";
-                size = addTask(tasks, size, new Deadline(desc, by));
+                } else if (cmd.startsWith("deadline")) {
+                    String rest = afterKeyword(cmd, "deadline");
+                    String[] p = splitOnce(rest, "/by");
+                    String desc = p[0].trim();
+                    String by   = p[1].trim();
+                    if (desc.isEmpty()) throw new DukeException("Deadline needs a description. Example: deadline return book /by Sunday");
+                    if (by.isEmpty())   throw new DukeException("Deadline needs a /by <when>. Example: deadline return book /by Sunday");
+                    size = addTask(tasks, size, new Deadline(desc, by));
 
-            } else if (cmd.startsWith("event ")) {
-                String rest = cmd.substring(6).trim();
-                String[] p1 = splitOnce(rest, "/from");
-                String desc = p1[0].trim();
-                String afterFrom = p1.length > 1 ? p1[1].trim() : "";
-                String[] p2 = splitOnce(afterFrom, "/to");
-                String from = p2[0].trim();
-                String to   = (p2.length > 1 ? p2[1] : "").trim();
-                size = addTask(tasks, size, new Event(desc, from, to));
+                } else if (cmd.startsWith("event")) {
+                    String rest = afterKeyword(cmd, "event");
+                    String[] p1 = splitOnce(rest, "/from");
+                    String desc = p1[0].trim();
+                    String[] p2 = splitOnce(p1[1].trim(), "/to");
+                    String from = p2[0].trim();
+                    String to   = p2[1].trim();
+                    if (desc.isEmpty()) throw new DukeException("Event needs a description. Example: event project meeting /from Mon 2pm /to 4pm");
+                    if (from.isEmpty()) throw new DukeException("Event needs a /from <start>. Example: event ... /from Mon 2pm /to 4pm");
+                    if (to.isEmpty())   throw new DukeException("Event needs a /to <end>. Example: event ... /from Mon 2pm /to 4pm");
+                    size = addTask(tasks, size, new Event(desc, from, to));
 
-            } else {
-                // keep Level-2 behavior for bare text: treat as Todo (typed)
-                size = addTask(tasks, size, new Todo(cmd));
+                } else {
+                    // Level-5: unknown commands are errors (no fallback to Todo)
+                    throw new DukeException("I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, bye.");
+                }
+            } catch (DukeException ex) {
+                error(ex.getMessage());
             }
         }
     }
@@ -120,44 +116,55 @@ public class Bob {
                     + "|____/ \\___/ |____/ \n";
         System.out.println("Hello from\n" + logo);
     }
-    private static void greet() {
+    private static void greet() { block(" Hello! I'm Bob\n What can I do for you?"); }
+    private static void exit()  { block(" Bye. Hope to see you again soon!"); }
+    private static void block(String body) {
         System.out.println(LINE);
-        System.out.println(" Hello! I'm Bob");
-        System.out.println(" What can I do for you?");
+        for (String s : body.split("\n", -1)) System.out.println(s);
         System.out.println(LINE);
     }
-    private static void exit() {
-        System.out.println(LINE);
-        System.out.println(" Bye. Hope to see you again soon!");
-        System.out.println(LINE);
+    private static void error(String msg) { block(" " + msg); }
+
+    private static void printList(Task[] tasks, int size) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(" Here are the tasks in your list:\n");
+        for (int i = 0; i < size; i++) sb.append(" ").append(i + 1).append(".").append(tasks[i]).append("\n");
+        String body = sb.toString().endsWith("\n") ? sb.substring(0, sb.length() - 1) : sb.toString();
+        block(body);
     }
 
     // ===== logic helpers =====
-    private static int addTask(Task[] tasks, int size, Task t) {
-        if (size >= tasks.length) {
-            System.out.println(LINE);
-            System.out.println(" Sorry, I can only store up to " + tasks.length + " items.");
-            System.out.println(LINE);
-            return size;
-        }
+    private static int addTask(Task[] tasks, int size, Task t) throws DukeException {
+        if (size >= tasks.length) throw new DukeException("Sorry, I can only store up to " + tasks.length + " items.");
         tasks[size++] = t;
-        System.out.println(LINE);
-        System.out.println(" Got it. I've added this task:");
-        System.out.println("   " + t);
-        System.out.println(" Now you have " + size + " tasks in the list.");
-        System.out.println(LINE);
+        block(" Got it. I've added this task:\n   " + t + "\n Now you have " + size + " tasks in the list.");
         return size;
     }
     private static int parseIndex(String s) {
         try { return Integer.parseInt(s.trim()); } catch (NumberFormatException e) { return -1; }
     }
+    private static int requireIndex(String cmd, String keyword) throws DukeException {
+        String rest = cmd.length() > keyword.length() ? cmd.substring(keyword.length()).trim() : "";
+        int idx = parseIndex(rest);
+        if (idx <= 0) throw new DukeException("Please provide a valid index. Example: " + keyword + " 2");
+        return idx;
+    }
+    private static void requireInRange(int idx, int size, String op) throws DukeException {
+        if (idx < 1 || idx > size) throw new DukeException("Index out of range for " + op + ". Use 1.." + size + ".");
+    }
+    private static String afterKeyword(String cmd, String keyword) {
+        if (cmd.equals(keyword)) return "";
+        return cmd.substring(keyword.length()).trim();
+    }
+    /** Split by first token like "/by", "/from", "/to". Always returns length 2. */
     private static String[] splitOnce(String text, String token) {
         int i = indexOfToken(text, token);
         if (i < 0) return new String[]{text, ""};
         String left = text.substring(0, i);
-        String right = text.substring(i + token.length()).trim();
+        String right = text.substring(i + token.length());
         return new String[]{left, right};
     }
+    /** Finds token allowing optional surrounding spaces. */
     private static int indexOfToken(String text, String token) {
         int i = text.indexOf(" " + token + " ");
         if (i >= 0) return i + 1;
@@ -166,10 +173,5 @@ public class Bob {
         i = text.indexOf(token + " ");
         if (i >= 0) return i;
         return text.indexOf(token);
-    }
-    private static void errorOutOfRange(int size) {
-        System.out.println(LINE);
-        System.out.println(" Invalid index. Use a number between 1 and " + size + ".");
-        System.out.println(LINE);
     }
 }
