@@ -5,6 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+// Level-8 date/time
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 public class Bob {
     private static final String LINE = "____________________________________________________________";
 
@@ -23,15 +30,21 @@ public class Bob {
         String statusIcon() { return isDone ? "X" : " "; }
         @Override public String toString() { return "[" + statusIcon() + "] " + description; }
     }
+
     private static class Todo extends Task {
         Todo(String description) { super(description); }
         @Override public String toString() { return "[T]" + super.toString(); }
     }
+
+    /** Level-8: store a real LocalDateTime and pretty-print it */
     private static class Deadline extends Task {
-        private final String by;
-        Deadline(String description, String by) { super(description); this.by = by; }
-        @Override public String toString() { return "[D]" + super.toString() + " (by: " + by + ")"; }
+        private final LocalDateTime by;
+        Deadline(String description, LocalDateTime by) { super(description); this.by = by; }
+        @Override public String toString() {
+            return "[D]" + super.toString() + " (by: " + pretty(by) + ")";
+        }
     }
+
     private static class Event extends Task {
         private final String from, to;
         Event(String description, String from, String to) { super(description); this.from = from; this.to = to; }
@@ -44,7 +57,6 @@ public class Bob {
         printLogo();
         greet();
 
-        // A-Collections: dynamic task list
         ArrayList<Task> tasks = new ArrayList<>(100);
 
         while (true) {
@@ -85,12 +97,15 @@ public class Bob {
                     addTask(tasks, new Todo(desc));
 
                 } else if (cmd.startsWith("deadline")) {
+                    // Level-8: parse '/by <date or date time>' and store LocalDateTime
                     String rest = afterKeyword(cmd, "deadline");
                     String[] p = splitOnce(rest, "/by");
                     String desc = p[0].trim();
-                    String by   = p[1].trim();
-                    if (desc.isEmpty()) throw new DukeException("Deadline needs a description. Example: deadline return book /by Sunday");
-                    if (by.isEmpty())   throw new DukeException("Deadline needs a /by <when>. Example: deadline return book /by Sunday");
+                    String when = p[1].trim();
+                    if (desc.isEmpty()) throw new DukeException("Deadline needs a description. Example: deadline return book /by 2019-12-02 1800");
+                    if (when.isEmpty()) throw new DukeException("Deadline needs a /by <when>. Example: deadline return book /by 2019-12-02 1800");
+
+                    LocalDateTime by = parseFlexibleDateTime(when);
                     addTask(tasks, new Deadline(desc, by));
 
                 } else if (cmd.startsWith("event")) {
@@ -108,8 +123,11 @@ public class Bob {
                 } else {
                     throw new DukeException("I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, delete, bye.");
                 }
+
             } catch (DukeException ex) {
                 error(ex.getMessage());
+            } catch (DateTimeParseException dtpe) {
+                error("Sorry, I couldn't parse that date/time. Try formats like: 2019-12-02 1800, 2019-12-02, 2/12/2019 1800, 2/12/2019.");
             }
         }
     }
@@ -179,5 +197,27 @@ public class Bob {
         i = text.indexOf(token + " ");
         if (i >= 0) return i;
         return text.indexOf(token);
+    }
+
+    // ===== Level-8 date/time helpers =====
+    private static final DateTimeFormatter OUT_DATE = DateTimeFormatter.ofPattern("MMM d yyyy");
+    private static final DateTimeFormatter OUT_DT   = DateTimeFormatter.ofPattern("MMM d yyyy, h:mma");
+
+    private static String pretty(LocalDateTime dt) {
+        return dt.toLocalTime().equals(LocalTime.MIDNIGHT)
+                ? dt.toLocalDate().format(OUT_DATE)
+                : dt.format(OUT_DT);
+    }
+
+    /** Accepts: "yyyy-MM-dd HHmm", "yyyy-MM-dd", "d/M/yyyy HHmm", "d/M/yyyy". */
+    private static LocalDateTime parseFlexibleDateTime(String s) {
+        String x = s.trim();
+        // datetime forms
+        try { return LocalDateTime.parse(x, DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm")); } catch (DateTimeParseException ignore) {}
+        try { return LocalDateTime.parse(x, DateTimeFormatter.ofPattern("d/M/yyyy HHmm")); } catch (DateTimeParseException ignore) {}
+        // date-only forms -> midnight
+        try { return LocalDate.parse(x, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay(); } catch (DateTimeParseException ignore) {}
+        try { return LocalDate.parse(x, DateTimeFormatter.ofPattern("d/M/yyyy")).atStartOfDay(); } catch (DateTimeParseException ignore) {}
+        throw new DateTimeParseException("Unrecognized date/time", x, 0);
     }
 }
