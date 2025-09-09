@@ -6,20 +6,28 @@ import java.util.List;
 public class Storage {
     private final String filePath;
 
+    public Storage() {
+        this("data/duke.txt");
+    }
+
     public Storage(String filePath) {
         this.filePath = filePath;
     }
 
-    public List<String> load() throws IOException {
-        // placeholder: implement real persistence later
+    public List<Task> load() throws IOException {
         return List.of();
     }
 
-    public void save(List<String> lines) throws IOException {
-        // placeholder: implement real persistence later
+    public List<String> loadLines() throws IOException {
+        return List.of();
+    }
+
+    public void save(List<Task> tasks) throws IOException {
+        // no-op for now (Level-7/Storage can replace this later)
     }
 
     public String getFilePath() {
         return filePath;
     }
 }
+
