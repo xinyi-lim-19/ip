@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 /**
- * Minimal core that parses one line at a time and returns a reply String.
- * Designed for reuse by both CLI and GUI.
+ * Core command engine that turns one input line into a reply string.
+ * Reusable by both CLI and GUI.
  */
 public class DukeCore
 {
@@ -14,7 +14,7 @@ public class DukeCore
 
     public DukeCore()
     {
-        // No storage here; the GUI can be wired to a TaskList with Storage if desired.
+        // If you want persistence here, construct TaskList with a Storage later.
         this.tasks = new TaskList();
     }
 
@@ -38,7 +38,7 @@ public class DukeCore
         final String cmd = input.trim();
         if (cmd.isEmpty())
         {
-            return "Please enter a command (try: todo, deadline, event, list, mark, unmark, delete, bye).";
+            return "Please enter a command (try: todo, deadline, event, list, mark, unmark, delete, edit, bye).";
         }
 
         try
@@ -56,6 +56,7 @@ public class DukeCore
                 final int idx = requireIndex(cmd, "mark");
                 requireInRange(idx, tasks.size(), "mark");
                 tasks.get(idx - 1).mark();
+                tasks.save();
                 return "Nice! I've marked this task as done:\n  " + tasks.get(idx - 1);
             }
             else if (cmd.startsWith("unmark"))
@@ -63,6 +64,7 @@ public class DukeCore
                 final int idx = requireIndex(cmd, "unmark");
                 requireInRange(idx, tasks.size(), "unmark");
                 tasks.get(idx - 1).unmark();
+                tasks.save();
                 return "OK, I've marked this task as not done yet:\n  " + tasks.get(idx - 1);
             }
             else if (cmd.startsWith("delete"))
@@ -70,6 +72,7 @@ public class DukeCore
                 final int idx = requireIndex(cmd, "delete");
                 requireInRange(idx, tasks.size(), "delete");
                 final Task removed = tasks.remove(idx - 1);
+                tasks.save();
                 return "Noted. I've removed this task:\n  " + removed
                      + "\nNow you have " + tasks.size() + " tasks in the list.";
             }
@@ -80,8 +83,9 @@ public class DukeCore
                 {
                     return "A todo needs a description. Example: todo borrow book";
                 }
-                // Using (desc, false) to match your ParserUtil constructors.
+                // Matches: Todo(String desc, boolean isDone)
                 tasks.add(new Todo(desc, false));
+                tasks.save();
                 return "Got it. I've added this task:\n  " + tasks.get(tasks.size() - 1)
                      + "\nNow you have " + tasks.size() + " tasks in the list.";
             }
@@ -102,7 +106,9 @@ public class DukeCore
                 }
 
                 final LocalDateTime by = DateTimeUtil.parseFlexible(when);
+                // Matches: Deadline(String desc, boolean isDone, LocalDateTime by)
                 tasks.add(new Deadline(desc, false, by));
+                tasks.save();
                 return "Got it. I've added this task:\n  " + tasks.get(tasks.size() - 1)
                      + "\nNow you have " + tasks.size() + " tasks in the list.";
             }
@@ -128,14 +134,20 @@ public class DukeCore
                     return "Event needs a /to <end>. Example: event ... /from Mon 2pm /to 4pm";
                 }
 
-                final String timeslot = from + " to " + to;
+                final String timeslot = from + " /to " + to;
+                // Matches: Event(String desc, boolean isDone, String timeslot)
                 tasks.add(new Event(desc, false, timeslot));
+                tasks.save();
                 return "Got it. I've added this task:\n  " + tasks.get(tasks.size() - 1)
                      + "\nNow you have " + tasks.size() + " tasks in the list.";
             }
+            else if (cmd.startsWith("edit"))
+            {
+                return handleEdit(cmd);
+            }
             else
             {
-                return "I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, delete, bye.";
+                return "I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, delete, edit, bye.";
             }
         }
         catch (final DateTimeParseException dtpe)
@@ -145,7 +157,6 @@ public class DukeCore
         }
         catch (final IOException ioe)
         {
-            // In case your TaskList is later backed by Storage and save() throws.
             return "I tried to save but ran into a problem: " + ioe.getMessage();
         }
         catch (final Exception e)
@@ -154,7 +165,81 @@ public class DukeCore
         }
     }
 
-    // ===== helpers (mirror your Bob helpers; no behavior change) =====
+    // ===== C-Update: edit command =====
+
+    private String handleEdit(final String cmd) throws IOException
+    {
+        // Syntax:
+        //   edit INDEX desc NEW_DESCRIPTION
+        //   edit INDEX by NEW_DATE_OR_DATETIME
+        //   edit INDEX timeslot NEW_TEXT
+        final String rest = afterKeyword(cmd, "edit");
+        final String[] firstTwo = rest.split("\\s+", 3); // idx, field, payload
+        if (firstTwo.length < 3)
+        {
+            return "Usage:\n"
+                 + "  edit INDEX desc NEW_DESCRIPTION\n"
+                 + "  edit INDEX by NEW_DATE_OR_DATETIME\n"
+                 + "  edit INDEX timeslot NEW_FROM /to NEW_TO";
+        }
+
+        final int idx = parseIndex(firstTwo[0]);
+        if (idx <= 0 || idx > tasks.size())
+        {
+            return "Please provide a valid index within 1.." + tasks.size() + ".";
+        }
+
+        final String field = firstTwo[1].toLowerCase();
+        final String payload = firstTwo[2].trim();
+        final Task t = tasks.get(idx - 1);
+
+        switch (field)
+        {
+            case "desc":
+            {
+                if (payload.isEmpty())
+                {
+                    return "Description cannot be empty.";
+                }
+                t.setDescription(payload);   // requires Task#setDescription
+                tasks.save();
+                return "Updated description:\n  " + t;
+            }
+            case "by":
+            {
+                if (!(t instanceof Deadline))
+                {
+                    return "Task #" + idx + " is not a deadline.";
+                }
+                if (payload.isEmpty())
+                {
+                    return "Please provide a date/time (e.g., 2019-12-02 1800).";
+                }
+                final LocalDateTime newBy = DateTimeUtil.parseFlexible(payload);
+                ((Deadline) t).setBy(newBy);   // requires Deadline#setBy
+                tasks.save();
+                return "Updated deadline time:\n  " + t;
+            }
+            case "timeslot":
+            {
+                if (!(t instanceof Event))
+                {
+                    return "Task #" + idx + " is not an event.";
+                }
+                if (payload.isEmpty())
+                {
+                    return "Please provide a timeslot, e.g., 'Mon 2pm /to 4pm'.";
+                }
+                ((Event) t).setTimeslot(payload);  // requires Event#setTimeslot
+                tasks.save();
+                return "Updated event time:\n  " + t;
+            }
+            default:
+                return "Unknown field '" + field + "'. Use: desc | by | timeslot";
+        }
+    }
+
+    // ===== helpers =====
 
     private String renderList()
     {

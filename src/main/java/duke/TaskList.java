@@ -10,14 +10,14 @@ public class TaskList
     private final List<Task> tasks = new ArrayList<>();
     private final Storage storage; // may be null
 
-    public TaskList(final Storage storage)
-    {
-        this.storage = storage;
-    }
-
     public TaskList()
     {
         this.storage = null;
+    }
+
+    public TaskList(final Storage storage)
+    {
+        this.storage = storage;
     }
 
     public int size()
@@ -30,32 +30,37 @@ public class TaskList
         return Collections.unmodifiableList(tasks);
     }
 
-    public void add(final Task t) throws IOException
-    {
-        tasks.add(t);
-        if (storage != null) {
-            storage.save(tasks);
-        }
-    }
-
-    public void addSilently(final Task t)
-    {
-        tasks.add(t);
-    }
-
-    // Helpers you will likely need soon:
     public Task get(final int index)
     {
         return tasks.get(index);
     }
 
+    public void add(final Task t) throws IOException
+    {
+        tasks.add(t);
+        save();
+    }
+
+    /** Add without triggering save (useful for initial load). */
+    public void addSilently(final Task t)
+    {
+        tasks.add(t);
+    }
+
     public Task remove(final int index) throws IOException
     {
         final Task removed = tasks.remove(index);
-        if (storage != null) {
+        save();
+        return removed;
+    }
+
+    /** Persist the current list if storage is present; otherwise no-op. */
+    public void save() throws IOException
+    {
+        if (storage != null)
+        {
             storage.save(tasks);
         }
-        return removed;
     }
 }
 

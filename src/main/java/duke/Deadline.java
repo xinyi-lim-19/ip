@@ -4,7 +4,12 @@ import java.time.LocalDateTime;
 
 public class Deadline extends Task
 {
-    private final LocalDateTime by;
+    private LocalDateTime by;
+
+    public void setBy(final LocalDateTime newBy)
+    {
+	this.by = newBy;
+    }
 
     public Deadline(final String description, final boolean isDone, final LocalDateTime by)
     {
