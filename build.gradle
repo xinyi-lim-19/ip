@@ -17,3 +17,12 @@ application {
     mainClass = 'duke.Bob'  
 }
 
+sourceSets {
+    main {
+        java {
+            exclude 'duke/MainApp.java'
+            exclude 'duke/Launcher.java'
+        }
+    }
+}
+

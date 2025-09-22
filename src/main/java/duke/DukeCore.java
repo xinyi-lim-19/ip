@@ -5,16 +5,18 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 /**
- * Core command engine that turns one input line into a reply string.
- * Reusable by both CLI and GUI.
+ * Core command engine that parses a single input line and produces a reply.
+ * Stateless with respect to UI; state is held in the internal TaskList.
  */
 public class DukeCore
 {
+    /**
+     * Creates a core instance backed by an in-memory TaskList.
+     */
     private final TaskList tasks;
 
     public DukeCore()
     {
-        // If you want persistence here, construct TaskList with a Storage later.
         this.tasks = new TaskList();
     }
 
