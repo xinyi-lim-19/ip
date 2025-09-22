@@ -1,6 +1,8 @@
 plugins {
     id 'application'
     id 'com.github.johnrengelman.shadow' version '8.1.1'  // fat JAR
+    id 'checkstyle'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'  // back to latest for Gradle 8
 }
 
 group = 'org.example'
@@ -19,4 +21,22 @@ sourceSets {
         }
     }
 }
+
+checkstyle {
+    toolVersion = '10.12.1'   // latest stable that works with Gradle 8
+    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    configProperties = [
+        'checkstyle.suppressions.file': rootProject.file('config/checkstyle/suppressions.xml').path
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            exclude 'duke/MainApp.java'
+            exclude 'duke/Launcher.java'
+        }
+    }
+}
+
 
