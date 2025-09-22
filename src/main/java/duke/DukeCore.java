@@ -54,6 +54,7 @@ public class DukeCore
             else if (cmd.startsWith("mark"))
             {
                 final int idx = requireIndex(cmd, "mark");
+		assert idx > 0 && idx <= tasks.size() : "Index must be 1.." + tasks.size();
                 requireInRange(idx, tasks.size(), "mark");
                 tasks.get(idx - 1).mark();
                 tasks.save();
@@ -62,6 +63,7 @@ public class DukeCore
             else if (cmd.startsWith("unmark"))
             {
                 final int idx = requireIndex(cmd, "unmark");
+		assert idx > 0 && idx <= tasks.size() : "Index must be 1.." + tasks.size();
                 requireInRange(idx, tasks.size(), "unmark");
                 tasks.get(idx - 1).unmark();
                 tasks.save();
@@ -70,6 +72,7 @@ public class DukeCore
             else if (cmd.startsWith("delete"))
             {
                 final int idx = requireIndex(cmd, "delete");
+		assert idx > 0 && idx <= tasks.size() : "Index must be 1.." + tasks.size();
                 requireInRange(idx, tasks.size(), "delete");
                 final Task removed = tasks.remove(idx - 1);
                 tasks.save();
@@ -184,6 +187,7 @@ public class DukeCore
         }
 
         final int idx = parseIndex(firstTwo[0]);
+	assert idx > 0 && idx <= tasks.size() : "Index must be 1.." + tasks.size();
         if (idx <= 0 || idx > tasks.size())
         {
             return "Please provide a valid index within 1.." + tasks.size() + ".";

@@ -1,19 +1,58 @@
 plugins {
     id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'  // back to latest for Gradle 8
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'checkstyle'
+    id 'org.openjfx.javafxplugin' version '0.1.0'   // ✅ add this
 }
 
+repositories {
+    mavenCentral()
+}
 
-repositories { mavenCentral() }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+application {
+    // Use the GUI launcher for Level-10
+    mainClass = 'duke.Launcher'
+}
+
+javafx {
+    version = '21.0.3'                 // ✅ JavaFX version
+    modules = [ 'javafx.controls', 'javafx.fxml' ]  // ✅ what you import in MainApp
+}
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
-test { useJUnitPlatform() }
+test {
+    useJUnitPlatform()
+}
 
-application {
-    mainClass = 'duke.Bob'  
+// Checkstyle (as you already had)
+checkstyle {
+    toolVersion = '10.17.0'
+    config = resources.text.fromFile('config/checkstyle/checkstyle.xml')
+}
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = false
+        html.required = true
+    }
+}
+
+// Shadow JAR manifest
+tasks.named('shadowJar') {
+    archiveBaseName.set('duke')
+    archiveVersion.set('0.1.0')
+    archiveClassifier.set('')
+    manifest {
+        attributes('Main-Class': application.mainClass.get())
+    }
 }
 

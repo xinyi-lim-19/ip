@@ -52,7 +52,7 @@ public class MainApp extends Application
         // submit on Enter
         input.setOnAction(send.getOnAction());
 
-        stage.setTitle("Duke");
+        stage.setTitle(AppInfo.APP_NAME);
         stage.setScene(new Scene(root, 560, 380));
         stage.show();
     }
