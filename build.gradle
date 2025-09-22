@@ -1,19 +1,22 @@
 plugins {
-    id 'java'
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'  // back to latest for Gradle 8
+    id 'com.github.johnrengelman.shadow' version '8.1.1'  // fat JAR
 }
 
-
-repositories { mavenCentral() }
-
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-}
-
-test { useJUnitPlatform() }
+group = 'org.example'
+version = '0.1.0'       
 
 application {
-    mainClass = 'duke.Bob'  
+    // TEXT UI entrypoint (not the JavaFX launcher)
+    mainClass = 'duke.Bob'
+}
+
+sourceSets {
+    main {
+        java {
+            // exclude JavaFX so the build doesn't need OpenJFX
+            exclude 'duke/MainApp.java', 'duke/Launcher.java', 'duke/gui/**'
+        }
+    }
 }
 
