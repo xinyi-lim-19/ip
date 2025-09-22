@@ -1,30 +1,20 @@
 plugins {
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'  // fat JAR
+    id 'com.github.johnrengelman.shadow' version '8.1.1'  // fat JAR for Gradle 8
     id 'checkstyle'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'  // back to latest for Gradle 8
 }
 
 group = 'org.example'
-version = '0.1.0'       
+version = '0.1.0'
 
 application {
     // TEXT UI entrypoint (not the JavaFX launcher)
     mainClass = 'duke.Bob'
 }
 
-sourceSets {
-    main {
-        java {
-            // exclude JavaFX so the build doesn't need OpenJFX
-            exclude 'duke/MainApp.java', 'duke/Launcher.java', 'duke/gui/**'
-        }
-    }
-}
-
 checkstyle {
-    toolVersion = '10.12.1'   // latest stable that works with Gradle 8
-    configFile = rootProject.file("config/checkstyle/checkstyle.xml")
+    toolVersion = '10.12.1'   // compatible with Gradle 8
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
     configProperties = [
         'checkstyle.suppressions.file': rootProject.file('config/checkstyle/suppressions.xml').path
     ]
@@ -33,10 +23,9 @@ checkstyle {
 sourceSets {
     main {
         java {
-            exclude 'duke/MainApp.java'
-            exclude 'duke/Launcher.java'
+            // Exclude JavaFX launcher & GUI so build doesn’t require OpenJFX
+            exclude 'duke/MainApp.java', 'duke/Launcher.java', 'duke/gui/**'
         }
     }
 }
-
 
