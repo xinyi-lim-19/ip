@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ====== CONFIG ======
-MAIN_CLASS="duke.Bob"   
+MAIN_CLASS="duke.Bob"
 
 # cd to script directory so relative paths are stable
 cd "$(dirname "$0")"
@@ -12,16 +12,20 @@ mkdir -p ../bin
 rm -f ACTUAL.TXT
 
 # --- Compile only console classes (exclude JavaFX GUI files) ---
-SOURCES=$(find ../src/main/java -name "*.java" \
+# Excluded:
+#   duke/MainApp.java, duke/Launcher.java, and anything under duke/gui/
+SOURCES=$(find ../src/main/java -type f -name "*.java" \
   ! -path "*/duke/MainApp.java" \
   ! -path "*/duke/Launcher.java" \
   ! -path "*/duke/gui/*")
 
+# In case the find returns nothing (guard)
 if [ -z "${SOURCES}" ]; then
   echo "No console sources found to compile. Check your paths/exclusions."
   exit 1
 fi
 
+# Compile (no warnings; output into ../bin)
 javac -Xlint:none -d ../bin ${SOURCES}
 
 # --- Run with redirected I/O ---
