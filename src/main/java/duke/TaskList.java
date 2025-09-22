@@ -62,5 +62,18 @@ public class TaskList
             storage.save(tasks);
         }
     }
+
+    public List<Task> find(String keyword) {
+    String q = (keyword == null ? "" : keyword.trim()).toLowerCase();
+    List<Task> matches = new ArrayList<>();
+    for (Task t : this.tasks) {
+        String text = t.getDescription();
+        if (text.toLowerCase().contains(q)) {
+            matches.add(t);
+        }
+    }
+    return matches;
+}
+
 }
 
