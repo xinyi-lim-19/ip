@@ -11,7 +11,7 @@ public class Deadline extends Task {
     }
 
     public LocalDateTime getBy() { return by; }
-    public void setBy(LocalDateTime newBy) { this.by = newBy; }   // ← add this
+    public void setBy(LocalDateTime newBy) { this.by = newBy; }
 
     @Override
     public String serialize() {

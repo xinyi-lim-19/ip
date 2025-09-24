@@ -1,7 +1,7 @@
 package duke;
 
 public class Event extends Task {
-    private String timeslot;   // ← not final
+    private String timeslot;   // not final (DukeCore mutates)
 
     public Event(String description, boolean isDone, String timeslot) {
         super(description, isDone);
@@ -9,7 +9,7 @@ public class Event extends Task {
     }
 
     public String getTimeslot() { return timeslot; }
-    public void setTimeslot(String timeslot) { this.timeslot = timeslot; }  // ← add this
+    public void setTimeslot(String timeslot) { this.timeslot = timeslot; }
 
     @Override
     public String serialize() {
