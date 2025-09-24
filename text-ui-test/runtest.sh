@@ -14,7 +14,11 @@ rm -f ACTUAL.TXT
 # --- Compile only console classes (exclude JavaFX GUI files) ---
 # Excluded:
 #   duke/MainApp.java, duke/Launcher.java, and anything under duke/gui/
+<<<<<<< HEAD
 SOURCES=$(find ../src/main/java -type f -name "*.java" \
+=======
+SOURCES=$(find ../src/main/java -name "*.java" \
+>>>>>>> branch-A-TextUiTesting
   ! -path "*/duke/MainApp.java" \
   ! -path "*/duke/Launcher.java" \
   ! -path "*/duke/gui/*")
