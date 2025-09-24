@@ -5,74 +5,37 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TaskList
-{
+public class TaskList {
     private final List<Task> tasks = new ArrayList<>();
     private final Storage storage; // may be null
 
-    public TaskList()
-    {
-        this.storage = null;
-    }
-
-    public TaskList(final Storage storage)
-    {
+    public TaskList(Storage storage) {
         this.storage = storage;
     }
 
-    public int size()
-    {
-        return tasks.size();
+    public TaskList() {
+        this.storage = null;
     }
 
-    public List<Task> asList()
-    {
-        return Collections.unmodifiableList(tasks);
-    }
+    public int size() { return tasks.size(); }
 
-    public Task get(final int index)
-    {
-        return tasks.get(index);
-    }
+    public List<Task> asList() { return Collections.unmodifiableList(tasks); }
 
-    public void add(final Task t) throws IOException
-    {
+    public void add(Task t) throws IOException {
         tasks.add(t);
-        save();
+        if (storage != null) storage.save(tasks);
     }
 
-    /** Add without triggering save (useful for initial load). */
-    public void addSilently(final Task t)
-    {
+    public void addSilently(Task t) {
         tasks.add(t);
     }
 
-    public Task remove(final int index) throws IOException
-    {
-        final Task removed = tasks.remove(index);
-        save();
+    // Helpers you will likely need soon:
+    public Task get(int index) { return tasks.get(index); }
+    public Task remove(int index) throws IOException {
+        Task removed = tasks.remove(index);
+        if (storage != null) storage.save(tasks);
         return removed;
     }
-
-    /** Persist the current list if storage is present; otherwise no-op. */
-    public void save() throws IOException
-    {
-        if (storage != null)
-        {
-            storage.save(tasks);
-        }
-    }
-
-    public List<Task> find(String keyword) {
-    String q = keyword.toLowerCase();
-    List<Task> out = new ArrayList<>();
-    for (Task t : tasks) {
-        if (t.getDescription().toLowerCase().contains(q)) {
-            out.add(t);
-        }
-    }
-    return out;
-    }
-
 }
 

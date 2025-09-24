@@ -4,22 +4,39 @@ public abstract class Task {
     protected final String description;
     protected boolean isDone;
 
-    protected Task(String description, boolean isDone) {
+    public Task(String description, boolean isDone) {
         this.description = description;
         this.isDone = isDone;
     }
 
-    public boolean isDone() { return isDone; }
-    public void markDone() { this.isDone = true; }
-    public void markUndone() { this.isDone = false; }
+    // --- getters ---
+    public String getDescription() {
+        return description;
+    }
 
-    /** e.g., "T | 1 | read book" */
-    public abstract String serialize();
+    public boolean isDone() {
+        return isDone;
+    }
+
+    // --- mutators ---
+    public void mark() {
+        this.isDone = true;
+    }
+
+    public void unmark() {
+        this.isDone = false;
+    }
+
+    protected String statusIcon() {
+        return isDone ? "X" : " ";
+    }
 
     @Override
     public String toString() {
-         return "[" + (isDone ? "X" : " ") + "] " + description;
+        return "[" + statusIcon() + "] " + description;
     }
 
+    // Each subclass must define its own save format
+    public abstract String serialize();
 }
 
