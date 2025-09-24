@@ -1,7 +1,7 @@
 package duke;
 
 public abstract class Task {
-    protected String description;
+    protected final String description;
     protected boolean isDone;
 
     public Task(String description, boolean isDone) {
@@ -9,14 +9,9 @@ public abstract class Task {
         this.isDone = isDone;
     }
 
-    // --- getter ---
+    // --- getters ---
     public String getDescription() {
         return description;
-    }
-
-    // --- setter ---
-    public void setDescription(final String newDesc) {
-	this.description = newDesc;
     }
 
     public boolean isDone() {
