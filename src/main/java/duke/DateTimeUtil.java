@@ -7,8 +7,18 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+/**
+ * Utilities for parsing and formatting dates/times for the chatbot.
+ */
 public final class DateTimeUtil
 {
+    /**
+     * Parses a date/time string in one of several accepted formats into a LocalDateTime.
+     *
+     * @param s date/time text.
+     * @return parsed LocalDateTime.
+     * @throws java.time.format.DateTimeParseException if not in an accepted format.
+     */
     private DateTimeUtil()
     {
     }
