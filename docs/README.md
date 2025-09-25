@@ -1,7 +1,3 @@
----
-layout: default
-title: Bob User Guide
----
 
 # Bob User Guide
 
@@ -17,9 +13,7 @@ Bob is a simple task management chatbot that helps you keep track of todos, dead
 1. **Download the JAR**  
    - Ensure you have Java 17 or later installed.  
    - Run Bob with:  
-     ```bash
      java -jar bob.jar
-     ```
 
 2. **Type a command** and press <kbd>Enter</kbd>.  
    - Example:  
@@ -30,9 +24,6 @@ Bob is a simple task management chatbot that helps you keep track of todos, dead
 3. **Exit** by typing:  
 bye
 
-yaml
-Copy code
-
 ---
 
 ## Features
@@ -41,75 +32,44 @@ Copy code
 Adds a task without a date.  
 todo <description>
 
-makefile
-Copy code
 Example:
 todo read book
-
-css
-Copy code
 
 ### Add a Deadline
 Adds a task with a due date.  
 deadline <description> /by <date>
 
-makefile
-Copy code
 Example:
 deadline return book /by 2025-10-15
-
-pgsql
-Copy code
 
 ### Add an Event
 Adds a task with a start and end date/time.  
 event <description> /from <start> /to <end>
 
-makefile
-Copy code
 Example:
 event project meeting /from 2025-10-01 /to 2025-10-02
-
-python
-Copy code
 
 ### List Tasks
 Shows all the tasks currently tracked.  
 list
 
-bash
-Copy code
-
 ### Mark/Unmark Tasks
 - Mark task as done:  
 mark <task number>
 
-bash
-Copy code
 - Mark task as not done:  
 unmark <task number>
-
-pgsql
-Copy code
 
 ### Delete a Task
 Deletes a task by its index.  
 delete <task number>
 
-css
-Copy code
-
 ### Find Tasks
 Finds tasks that contain a keyword.  
 find <keyword>
 
-makefile
-Copy code
 Example:
 find book
-
-perl
-Copy code
 
 ### Save Data Automatically
 Bob saves your tasks to disk after every change. Next time you run the app, your tasks will be loaded automatically.
