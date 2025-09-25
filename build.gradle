@@ -1,31 +1,28 @@
 plugins {
     id 'application'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'  // fat JAR for Gradle 8
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'checkstyle'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 group = 'org.example'
 version = '0.1.0'
 
+repositories {
+    mavenCentral()
+}
+
 application {
-    // TEXT UI entrypoint (not the JavaFX launcher)
-    mainClass = 'duke.Bob'
+    // GUI entrypoint (change to your launcher class)
+    mainClass = 'duke.Launcher'
 }
 
-checkstyle {
-    toolVersion = '10.12.1'   // compatible with Gradle 8
-    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-    configProperties = [
-        'checkstyle.suppressions.file': rootProject.file('config/checkstyle/suppressions.xml').path
-    ]
+javafx {
+    version = '21.0.3'
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
-sourceSets {
-    main {
-        java {
-            // Exclude JavaFX launcher & GUI so build doesn’t require OpenJFX
-            exclude 'duke/MainApp.java', 'duke/Launcher.java', 'duke/gui/**'
-        }
-    }
+tasks.shadowJar {
+    archiveClassifier.set('all')
 }
 
