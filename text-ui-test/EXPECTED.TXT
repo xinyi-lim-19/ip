@@ -1,55 +1,10 @@
-Hello from
- ____   ___   ____  
-| __ ) / _ \ | __ ) 
-|  _ \| | | ||  _ \ 
-| |_) | |_| || |_) |
-|____/ \___/ |____/ 
+Hello! I'm Bob
+What can I do for you?
 
-____________________________________________________________
- Hello! I'm Bob
- What can I do for you?
-____________________________________________________________
-____________________________________________________________
- I don't recognise that command. Try: todo, deadline, event, list, mark, unmark, delete, bye.
-____________________________________________________________
-____________________________________________________________
- Got it. I've added this task:
-   [T][ ] read book
- Now you have 1 tasks in the list.
-____________________________________________________________
-____________________________________________________________
- Got it. I've added this task:
-   [D][ ] return book (by: Jun 6 2019)
- Now you have 2 tasks in the list.
-____________________________________________________________
-____________________________________________________________
- Got it. I've added this task:
-   [E][ ] project meeting (from: 2019-08-06 1400 to: 2019-08-06 1600)
- Now you have 3 tasks in the list.
-____________________________________________________________
-____________________________________________________________
- Got it. I've added this task:
-   [T][ ] join sports club
- Now you have 4 tasks in the list.
-____________________________________________________________
-____________________________________________________________
- Here are the tasks in your list:
- 1.[T][ ] read book
- 2.[D][ ] return book (by: Jun 6 2019)
- 3.[E][ ] project meeting (from: 2019-08-06 1400 to: 2019-08-06 1600)
- 4.[T][ ] join sports club
-____________________________________________________________
-____________________________________________________________
- Noted. I've removed this task:
-   [D][ ] return book (by: Jun 6 2019)
- Now you have 3 tasks in the list.
-____________________________________________________________
-____________________________________________________________
- Here are the tasks in your list:
- 1.[T][ ] read book
- 2.[E][ ] project meeting (from: 2019-08-06 1400 to: 2019-08-06 1600)
- 3.[T][ ] join sports club
-____________________________________________________________
-____________________________________________________________
- Bye. Hope to see you again soon!
-____________________________________________________________
+Added: [T][ ] read book
+Now you have 1 tasks in the list.
+
+Here are the tasks in your list:
+1.[T][ ] read book
+
+Bye. Hope to see you again soon!
